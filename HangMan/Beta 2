@@ -1,0 +1,272 @@
+using System;
+using System.Collections.Generic;
+using System.Linq; // Enables LINQ (e.g., Count, Where, Select) for easier collection handling
+using System.Text;
+
+namespace HangmanAppTest
+{
+    internal class Program
+    {
+        // =========================
+        // DRAW HANGMAN STAGES
+        // =========================
+        private static void PrintHangman(int wrong)
+        {
+            Console.WriteLine();
+            switch (wrong)
+            {
+                case 0: // Stage 0: Empty scaffold
+                    Console.WriteLine(" +---+");
+                    Console.WriteLine("     |");
+                    Console.WriteLine("     |");
+                    Console.WriteLine("     |");
+                    Console.WriteLine("    ===");
+                    break;
+                case 1: // Stage 1: Head
+                    Console.WriteLine(" +---+");
+                    Console.WriteLine(" O   |");
+                    Console.WriteLine("     |");
+                    Console.WriteLine("     |");
+                    Console.WriteLine("    ===");
+                    break;
+                case 2: // Stage 2: Body
+                    Console.WriteLine(" +---+");
+                    Console.WriteLine(" O   |");
+                    Console.WriteLine(" |   |");
+                    Console.WriteLine("     |");
+                    Console.WriteLine("    ===");
+                    break;
+                case 3: // Stage 3: One arm
+                    Console.WriteLine(" +---+");
+                    Console.WriteLine(" O   |");
+                    Console.WriteLine("/|   |");
+                    Console.WriteLine("     |");
+                    Console.WriteLine("    ===");
+                    break;
+                case 4: // Stage 4: Both arms
+                    Console.WriteLine(" +---+");
+                    Console.WriteLine(" O   |");
+                    Console.WriteLine("/|\\  |");
+                    Console.WriteLine("     |");
+                    Console.WriteLine("    ===");
+                    break;
+                case 5: // Stage 5: One leg
+                    Console.WriteLine(" +---+");
+                    Console.WriteLine(" O   |");
+                    Console.WriteLine("/|\\  |");
+                    Console.WriteLine("/    |");
+                    Console.WriteLine("    ===");
+                    break;
+                case 6: // Stage 6: Full hangman (Game Over)
+                    Console.WriteLine(" +---+");
+                    Console.WriteLine(" O   |");
+                    Console.WriteLine("/|\\  |");
+                    Console.WriteLine("/ \\  |");
+                    Console.WriteLine("    ===");
+                    break;
+            }
+        }
+
+        // =========================
+        // DISPLAY WORD STATE
+        // =========================
+        // Shows guessed letters and underscores for missing letters
+        private static int PrintWord(List<char> guessedLetters, string randomWord)
+        {
+            int rightLetters = 0;
+            Console.WriteLine();
+            foreach (char c in randomWord)
+            {
+                if (guessedLetters.Contains(c))
+                {
+                    Console.Write(c + " "); // ✅ Correctly guessed letter
+                    rightLetters++;
+                }
+                else
+                {
+                    Console.Write("_ "); // ❌ Letter not guessed yet
+                }
+            }
+            return rightLetters;
+        }
+
+        // =========================
+        // OVERLINE UNDER WORD
+        // =========================
+        private static void PrintLines(string randomWord)
+        {
+            Console.WriteLine();
+            foreach (char c in randomWord)
+            {
+                Console.OutputEncoding = Encoding.Unicode;
+                Console.Write("\u0305 "); // Adds overline for style
+            }
+        }
+
+        // =========================
+        // MAIN GAME LOGIC
+        // =========================
+        private static void PlayGame()
+        {
+            Random random = new Random();
+
+            //  Word dictionary - variety from basic to advanced
+            List<string> wordDictionary = new List<string>
+            {
+                // Basic words
+                "sunflower","house","diamond","memes","yeet","hello","howdy","like","subscribe",
+
+                // Common nouns & verbs
+                "apple","banana","orange","grape","car","train","plane","boat",
+                "run","walk","jump","code","debug","compile","loop","array",
+
+                // Intermediate words
+                "mountain","keyboard","monitor","guitar","pencil","river","planet","spacecraft",
+                "android","language","science","library","volcano","oxygen","biology","history",
+
+                // Advanced / Complex words
+                "articulation","architecture","astronomy","benevolent","conundrum","cryptography",
+                "declaration","environment","equilibrium","exaggeration","formidable","hallucination",
+                "hypothesis","illustration","imagination","juxtaposition","magnificent","meteorology",
+                "neuroscience","paradoxical","philosopher","photosynthesis","revolutionary",
+                "sophisticated","sustainability","transformation","unbelievable","vulnerability",
+
+                // Tech terms
+                "artificial","intelligence","blockchain","interface","machine","algorithm",
+                "database","encryption","firewall","cybersecurity","processor","bandwidth",
+
+                // Fun & niche
+                "extraterrestrial","anachronistic","bioluminescence","quantum","phenomenon",
+                "onomatopoeia","antidisestablishmentarianism","flabbergasted","whimsical",
+                "serendipity","ephemeral","labyrinth","pandemonium","rendezvous","zeitgeist"
+              // You can add more words to the dictionary
+            };
+
+            string randomWord = wordDictionary[random.Next(wordDictionary.Count)]; // 🎲 Random word selection
+
+            int lengthOfWordToGuess = randomWord.Length;
+            int amountOfTimesWrong = 0;
+            List<char> currentLettersGuessed = new List<char>();
+            int currentLettersRight = 0;
+
+            Console.Clear();
+            Console.WriteLine("Let's play Hangman!");
+            PrintHangman(amountOfTimesWrong);
+            PrintWord(currentLettersGuessed, randomWord);
+
+            // =========================
+            // GAME LOOP
+            // =========================
+            while (amountOfTimesWrong < 6 && currentLettersRight < lengthOfWordToGuess)
+            {
+                // Display letters guessed so far
+                Console.Write("\nLetters guessed so far: ");
+                foreach (char letter in currentLettersGuessed)
+                    Console.Write(letter + " ");
+
+                // Prompt for guess
+                Console.Write("\nGuess a letter: ");
+                string input = Console.ReadLine().ToLower();
+
+                // ✅ Input validation
+                if (string.IsNullOrEmpty(input) || input.Length != 1 || !char.IsLetter(input[0]))
+                {
+                    Console.WriteLine("⚠️  Please enter a single valid letter!");
+                    continue;
+                }
+
+                char letterGuessed = input[0];
+
+                // ❌ Letter already guessed
+                if (currentLettersGuessed.Contains(letterGuessed))
+                {
+                    Console.WriteLine("⚠️  You already guessed that letter!");
+                }
+                else
+                {
+                    currentLettersGuessed.Add(letterGuessed); // Add letter to guessed list
+
+                    // ✅ Correct or wrong guess feedback
+                    if (!randomWord.Contains(letterGuessed))
+                    {
+                        amountOfTimesWrong++;
+                        Console.WriteLine("❌ Wrong guess!");
+                    }
+                    else
+                    {
+                        Console.WriteLine("✅ Good guess!");
+                    }
+                }
+
+                // Update display
+                PrintHangman(amountOfTimesWrong);
+                currentLettersRight = PrintWord(currentLettersGuessed, randomWord);
+                PrintLines(randomWord);
+            }
+
+            // =========================
+            // GAME OVER / WIN
+            // =========================
+            if (currentLettersRight == lengthOfWordToGuess)
+                Console.WriteLine("\n🎉 Congratulations! You guessed the word: " + randomWord);
+            else
+                Console.WriteLine("\n💀 Game Over! Try Again next Time! The word was: " + randomWord);
+        }
+
+        // =========================
+        // INSTRUCTIONS
+        // =========================
+        private static void ShowInstructions()
+        {
+            Console.Clear();
+            Console.WriteLine("Hangman Instructions:");
+            Console.WriteLine("--------------------");
+            Console.WriteLine("1️⃣  A word is chosen at random.");
+            Console.WriteLine("2️⃣  Guess letters one at a time.");
+            Console.WriteLine("3️⃣  Each wrong guess brings the hangman closer to completion.");
+            Console.WriteLine("4️⃣  Guess all letters before the hangman is fully drawn!");
+            Console.WriteLine("\nPress any key to return to the menu...");
+            Console.ReadKey();
+        }
+
+        // =========================
+        // MAIN MENU
+        // =========================
+        static void Main(string[] args)
+        {
+            bool running = true;
+
+            while (running)
+            {
+                Console.Clear();
+                Console.WriteLine("=== HANGMAN GAME ===");
+                Console.WriteLine("1️)  Play Game");
+                Console.WriteLine("2️)  Instructions");
+                Console.WriteLine("3️)  Exit");
+                Console.Write("Select an option: ");
+
+                string choice = Console.ReadLine();
+
+                switch (choice)
+                {
+                    case "1":
+                        PlayGame();
+                        Console.WriteLine("\nPress any key to return to the menu...");
+                        Console.ReadKey();
+                        break;
+                    case "2":
+                        ShowInstructions();
+                        break;
+                    case "3":
+                        running = false;
+                        Console.WriteLine("👋 Thanks for playing! Goodbye!");
+                        break;
+                    default:
+                        Console.WriteLine("⚠️  Invalid choice. Press any key to try again...");
+                        Console.ReadKey();
+                        break;
+                }
+            }
+        }
+    }
+}
